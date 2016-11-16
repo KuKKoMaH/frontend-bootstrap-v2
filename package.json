@@ -9,7 +9,7 @@
   },
   "author": "",
   "license": "ISC",
-  "dev-dependencies": {
+  "devDependencies": {
     "css-modulesify": "^0.25.1",
     "cssnano": "^3.8.0",
     "postcss": "^5.2.5",
