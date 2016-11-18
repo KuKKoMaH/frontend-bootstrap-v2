@@ -21,12 +21,6 @@ function load(filePath, styles) {
         'scripts': function (text, options) {
           return '\n    <script src="' + pathGenerator.paths.publicJsPath + 'vendors.js"></script>' +
             '\n    <script src="' + pathGenerator.paths.publicJsPath + fileInfo.name + '.js"></script>\n';
-        },
-        'vars':    function (text, options) {
-          for (var varName in options) {
-            text = '- var ' + varName + ' = ' + JSON.stringify(options[varName]) + '\n' + text;
-          }
-          return pug.render(text, config);
         }
       };
 
