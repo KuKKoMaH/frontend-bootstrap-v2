@@ -60,6 +60,9 @@ function getDependencies(template) {
       'scripts': function (text, options) {
         return text;
       },
+      'vars': function (text, options) {
+        return text;
+      },
     },
   });
   return file.dependencies

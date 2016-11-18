@@ -14,17 +14,25 @@ function load(filePath, styles) {
   var fileInfo = pathGenerator.parseFilename(filePath);
   return new Promise((resolve, reject) => {
     try {
-      var file = pug.renderFile(filePath, {
-        pretty:  true,
-        filters: {
-          'styles':  function (text, options) {
-            return '\n    <link rel="stylesheet" href="' + pathGenerator.paths.publicStylePath + '" />';
-          },
-          'scripts': function (text, options) {
-            return '\n    <script src="' + pathGenerator.paths.publicJsPath + 'vendors.js"></script>' +
-              '\n    <script src="' + pathGenerator.paths.publicJsPath + fileInfo.name + '.js"></script>\n';
-          }
+      var filters = {
+        'styles':  function (text, options) {
+          return '\n    <link rel="stylesheet" href="' + pathGenerator.paths.publicStylePath + '" />';
         },
+        'scripts': function (text, options) {
+          return '\n    <script src="' + pathGenerator.paths.publicJsPath + 'vendors.js"></script>' +
+            '\n    <script src="' + pathGenerator.paths.publicJsPath + fileInfo.name + '.js"></script>\n';
+        },
+        'vars':    function (text, options) {
+          for (var varName in options) {
+            text = '- var ' + varName + ' = ' + JSON.stringify(options[varName]) + '\n' + text;
+          }
+          return pug.render(text, config);
+        }
+      };
+
+      var config = {
+        pretty:  true,
+        filters: filters,
         plugins: [{
           postLex:  function (ast, config) {
             var fileInfo = pathGenerator.parseFilename(config.filename);
@@ -58,7 +66,9 @@ function load(filePath, styles) {
             return ast;
           }
         }]
-      });
+      };
+
+      var file = pug.renderFile(filePath, config);
       resolve(file);
     }catch(err) { reject(err) }
   })
