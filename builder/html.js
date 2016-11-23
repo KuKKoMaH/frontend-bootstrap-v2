@@ -41,21 +41,30 @@ function load(filePath, styles) {
           },
           postLink: function (ast) {
             walkAst(ast, (ast) => {
-              if (ast.name === 'img') {
-                ast.attrs.forEach((attr) => {
-                  if (attr.name !== 'src') return;
-                  if (attr.val.indexOf('http') === 1) return; // пропустить все внешние изображения (атрибут заключен в кавычки)
-                  var src = attr.val.slice(1, -1); // обрезаем кавычки
-                  var dir = path.dirname(ast.filename);
-                  var srcPath = path.resolve(dir, src);
-                  var destName = path.relative(pathGenerator.paths.basePath, srcPath).replace(new RegExp(path.sep, 'g'), '-');
-                  var destPath = path.resolve(pathGenerator.paths.imgPath, destName);
-                  if (fs.existsSync(srcPath)) {
-                    attr.val = '\'img/' + destName + '\'';
-                    fs.createReadStream(srcPath).pipe(fs.createWriteStream(destPath));
+              ast.attrs.forEach((attr) => {
+                var value = attr.val;
+                var dir = path.dirname(ast.filename);
+
+                if (attr.name === 'style') {
+                  if(value.indexOf('url(') !== -1){
+                    attr.val = value.replace(/url\((.*?)\)/g, function (str, url, offset, s) {
+                      if( url.indexOf('data:') === 0 || url.indexOf('#') === 0 || url.indexOf('http') === 0) return url;
+                      var srcPath = path.resolve(dir, url.replace(/["']/g, "").trim());
+                      var destName = saveFile(srcPath);
+                      return 'url(' + (destName ? 'img/' + destName : url) + ')';
+                    });
                   }
-                });
-              }
+                  return;
+                }
+
+                if (value.indexOf('http') === 1) return; // пропустить все внешние изображения (атрибут заключен в кавычки)
+                var src = value.slice(1, -1); // обрезаем кавычки
+                var srcPath = path.resolve(dir, src);
+                var destName = saveFile(srcPath);
+                if (destName) {
+                  attr.val = '\'img/' + destName + '\'';
+                }
+              });
             });
             return ast;
           }
@@ -74,6 +83,16 @@ function walkAst(ast, cb) {
     ast.nodes.forEach(node => walkAst(node, cb));
   }
   if(ast.block) walkAst(ast.block, cb);
+}
+
+function saveFile(srcAbsPath) {
+  var destName = path.relative(pathGenerator.paths.basePath, srcAbsPath).replace(new RegExp(path.sep, 'g'), '-');
+  var destPath = path.resolve(pathGenerator.paths.imgPath, destName);
+  if (fs.existsSync(srcAbsPath)) {
+    fs.createReadStream(srcAbsPath).pipe(fs.createWriteStream(destPath));
+    return destName;
+  }
+  return null;
 }
 
 module.exports = {

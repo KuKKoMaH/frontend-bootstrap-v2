@@ -12,6 +12,7 @@
   "devDependencies": {
     "css-modulesify": "^0.25.1",
     "cssnano": "^3.8.0",
+    "expose-loader": "^0.7.1",
     "postcss": "^5.2.5",
     "postcss-copy": "^5.3.0",
     "postcss-copy-assets": "^0.3.0",
