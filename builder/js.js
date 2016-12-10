@@ -14,6 +14,11 @@ function load(entries, globals) {
       name: 'vendors',
       minChunks: 2
     }),
+    new webpack.ProvidePlugin({
+      $:               "jquery",
+      jQuery:          "jquery",
+      "window.jQuery": "jquery"
+    })
   ];
   if(process.env.NODE_ENV === 'production') {
     plugins.push(new webpack.optimize.UglifyJsPlugin({compressor: {warnings: false, drop_console: true}}))
@@ -24,7 +29,11 @@ function load(entries, globals) {
       output: {
         path:     path.resolve(pathGenerator.paths.buildPath, 'js'),
         filename: '[name].js',
-        libraryTarget: "var",
+      },
+      module: {
+        loaders: [
+          { test: require.resolve("jquery"), loader: "expose-loader?$!expose-loader?jQuery" },
+        ]
       },
       plugins,
     }, (err, stats) => {
