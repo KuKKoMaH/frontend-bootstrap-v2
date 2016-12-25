@@ -44,6 +44,7 @@ function load(filePath, styles) {
               ast.attrs.forEach((attr) => {
                 var value = attr.val;
                 var dir = path.dirname(ast.filename);
+                if (!value) return;
 
                 if (attr.name === 'style') {
                   if(value.indexOf('url(') !== -1){
@@ -58,6 +59,7 @@ function load(filePath, styles) {
                 }
 
                 if (value.indexOf('http') === 1) return; // пропустить все внешние изображения (атрибут заключен в кавычки)
+                if (value.indexOf('.') === -1) return; // если в атрибуте файл - то в пути должна быть точка
                 var src = value.slice(1, -1); // обрезаем кавычки
                 var srcPath = path.resolve(dir, src);
                 var destName = saveFile(srcPath);

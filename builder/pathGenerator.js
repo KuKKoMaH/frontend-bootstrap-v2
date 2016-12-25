@@ -15,12 +15,12 @@ var jsPath = path.resolve(buildPath, 'js');
 var imgPath = path.resolve(buildPath, 'img');
 var fontPath = path.resolve(buildPath, 'fonts');
 var paths = {
-                   basePath,
-                   buildPath,
-                   cssPath,
-                   jsPath,
-                   imgPath,
-                   fontPath,
+  basePath,
+  buildPath,
+  cssPath,
+  jsPath,
+  imgPath,
+  fontPath,
   modulesPath:     path.resolve(basePath, 'modules'),
   pagesPath:       path.resolve(basePath, 'pages'),
   stylePath:       path.resolve(cssPath, 'style.css'),

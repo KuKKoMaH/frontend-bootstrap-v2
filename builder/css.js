@@ -9,6 +9,7 @@ var cssnext             = require('postcss-cssnext');
 var sprites             = require('postcss-sprites');
 var imageSizes          = require('postcss-image-sizes');
 var postcssCopy         = require('postcss-copy');
+var calc                = require("postcss-calc");
 var resolver            = require('./stylus/resolver');
 
 var stylus              = require('stylus');
@@ -112,6 +113,7 @@ function combine(styles) {
           return pathGenerator.paths.cssPath;
         }
       }),
+      calc()
     ];
 
     if(process.env.NODE_ENV === 'production') {
