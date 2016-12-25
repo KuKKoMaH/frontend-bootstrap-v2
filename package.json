@@ -28,6 +28,7 @@
     "postcss-calc": "^5.3.1"
   },
   "dependencies": {
+    "css-mqpacker": "^5.0.1",
     "jquery": "^3.1.1",
     "jquery.maskedinput": "^1.4.1",
     "magnific-popup": "^1.1.0",

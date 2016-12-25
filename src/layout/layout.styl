@@ -15,10 +15,22 @@ body
 *, *:before, *:after
   box-sizing: border-box
 
-.page
-  wrapper()
+img
+  max-width: 100%
+
 
 :global
   .r
     font-family: 'Rouble'
     display: inline
+
+  .w
+    wrapper()
+
+  .c
+    col()
+
+  for $col in (1..$cols-number)
+    .c{$col}
+      @media (min-width: $breakpoint-sm)
+        width: round((100 / $cols-number * $col)%, 3)

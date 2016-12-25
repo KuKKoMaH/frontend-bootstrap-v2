@@ -11,6 +11,7 @@ var imageSizes          = require('postcss-image-sizes');
 var postcssCopy         = require('postcss-copy');
 var calc                = require("postcss-calc");
 var resolver            = require('./stylus/resolver');
+var mqpacker            = require("css-mqpacker");
 
 var stylus              = require('stylus');
 
@@ -119,6 +120,7 @@ function combine(styles) {
     if(process.env.NODE_ENV === 'production') {
       plugins.push(cssnano());
       plugins.push(cssnext({browsers: ['last 10 versions', 'IE > 8']}));
+      plugins.push(mqpacker({ sort: true }));
     }
 
     postcss(plugins).process(css, {from: path.resolve(pathGenerator.paths.basePath, 'style.css')})

@@ -1,37 +1,28 @@
-
 wrapper()
   margin-left: auto
   margin-right: auto
-  padding-left: column-gutter
-  padding-right: column-gutter
-  width: container-width + column-gutter * 2
-//if(DEVELOPMENT)
-//  background-grid()
-
-
-container()
-  margin-left: -(column-gutter)
-  margin-right: -(column-gutter)
+  width: 100%
+  font-size: 0
+  table-layout: fixed
+  display: table
   cf()
+  background-grid()
 
-span(cols = 1, gutters = both)
+  @media (min-width: $breakpoint-sm) and (max-width $breakpoint-md - 1)
+    width: $container-sm
+  @media (min-width: $breakpoint-md) and (max-width $breakpoint-lg - 1)
+    width: $container-md
+  @media (min-width: $breakpoint-lg)
+    width: $container-lg
+
+col(cols = 1, gutters = both)
   min-height: 1px
-  float: left;
-  width: ( column-width * cols ) + ( column-gutter * 2 * ( cols - 1 ) )
-  if (gutters == both) or (gutters == left)
-    margin-left: column-gutter
-  if (gutters == both) or (gutters == right)
-    margin-right: column-gutter
-
-spanFluid(cols = 1, gutters = both)
-  min-height: 1px
-  float: left;
-  width: (100 / column-count * cols)%
-  if (gutters == both) or (gutters == left)
-    padding-left: column-gutter
-  if (gutters == both) or (gutters == right)
-    padding-right: column-gutter
-
+  display: inline-block
+  vertical-align: top
+  padding-left: $gutter-half
+  padding-right: $gutter-half
+  font-size: $font-size
+  width: 100%
 
 cf()
   &:after
@@ -40,15 +31,23 @@ cf()
     clear: both
 
 background-grid()
+  @media (min-width: $breakpoint-sm) and (max-width: $breakpoint-md - 1)
+    background-gradient($container-sm / $cols-number)
+  @media (min-width: $breakpoint-md) and (max-width: $breakpoint-lg - 1)
+    background-gradient($container-md / $cols-number)
+  @media (min-width: $breakpoint-lg)
+    background-gradient($container-lg / $cols-number)
+
+background-gradient(col-width)
   gradient = ''
   color-transparent = 'rgba(0,0,0,0.01)'
   color-grid = 'rgba(0,0,0,0.05)'
-  column-total-width =  column-gutter * 2 + column-width
-  for i in 0..column-count - 1
-    gradient += color-transparent + ' ' + ( column-total-width * i ) + ', '
-    gradient += color-transparent + ' ' + ( column-total-width * i + column-gutter) + ', '
-    gradient += color-grid + ' ' + ( column-total-width * i + column-gutter) + ', '
-    gradient += color-grid + ' ' + ( column-total-width * i + column-gutter + column-width) + ', '
-    gradient += color-transparent + ' ' + ( column-total-width * i + column-gutter + column-width) + ', '
-    gradient += color-transparent + ' ' + ( column-total-width * i + column-gutter + column-width + column-gutter) + ', '
-  background: linear-gradient(unquote('to right, ' + gradient + color-transparent + ' 100%'))
+  col-width-no-padding = col-width - $gutter
+  gutter-width = $gutter
+  gradient += color-transparent + ', '
+  gradient += color-transparent + ' ' + ($gutter-half) + ', '
+  gradient += color-grid + ' ' + ($gutter-half) + ', '
+  gradient += color-grid + ' ' + ($gutter-half + col-width-no-padding) + ', '
+  gradient += color-transparent + ' ' + ($gutter-half + col-width-no-padding) + ', '
+  gradient += color-transparent + ' ' + ($gutter + col-width-no-padding)
+  background-image: repeating-linear-gradient(unquote('to right, ' + gradient))

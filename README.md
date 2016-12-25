@@ -38,6 +38,7 @@
     - postcss-image-sizes(https://github.com/s0ber/postcss-image-sizes)
     - postcss-sprites(https://github.com/2createStudio/postcss-sprites)
     - postcss-copy(https://github.com/geut/postcss-copy)
+    - css-mqpacker(https://github.com/hail2u/node-css-mqpacker)
 - pug(https://github.com/pugjs/pug)
 - webpack(https://webpack.github.io)
 
