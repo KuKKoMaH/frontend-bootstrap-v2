@@ -1,53 +1,11 @@
-wrapper()
-  margin-left: auto
-  margin-right: auto
-  width: 100%
-  font-size: 0
-  table-layout: fixed
-  display: table
-  cf()
-  background-grid()
+:global
+  .w
+    wrapper()
 
-  @media (min-width: $breakpoint-sm) and (max-width $breakpoint-md - 1)
-    width: $container-sm
-  @media (min-width: $breakpoint-md) and (max-width $breakpoint-lg - 1)
-    width: $container-md
-  @media (min-width: $breakpoint-lg)
-    width: $container-lg
+  .c
+    col()
 
-col(cols = 1, gutters = both)
-  min-height: 1px
-  display: inline-block
-  vertical-align: top
-  padding-left: $gutter-half
-  padding-right: $gutter-half
-  font-size: $font-size
-  width: 100%
-
-cf()
-  &:after
-    content: ''
-    display: table
-    clear: both
-
-background-grid()
-  @media (min-width: $breakpoint-sm) and (max-width: $breakpoint-md - 1)
-    background-gradient($container-sm / $cols-number)
-  @media (min-width: $breakpoint-md) and (max-width: $breakpoint-lg - 1)
-    background-gradient($container-md / $cols-number)
-  @media (min-width: $breakpoint-lg)
-    background-gradient($container-lg / $cols-number)
-
-background-gradient(col-width)
-  gradient = ''
-  color-transparent = 'rgba(0,0,0,0.01)'
-  color-grid = 'rgba(0,0,0,0.05)'
-  col-width-no-padding = col-width - $gutter
-  gutter-width = $gutter
-  gradient += color-transparent + ', '
-  gradient += color-transparent + ' ' + ($gutter-half) + ', '
-  gradient += color-grid + ' ' + ($gutter-half) + ', '
-  gradient += color-grid + ' ' + ($gutter-half + col-width-no-padding) + ', '
-  gradient += color-transparent + ' ' + ($gutter-half + col-width-no-padding) + ', '
-  gradient += color-transparent + ' ' + ($gutter + col-width-no-padding)
-  background-image: repeating-linear-gradient(unquote('to right, ' + gradient))
+  for $col in (1..$cols-number)
+    .c{$col}
+      @media (min-width: $breakpoint-sm)
+        width: round((100 / $cols-number * $col)%, 3)

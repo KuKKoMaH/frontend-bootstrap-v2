@@ -11,24 +11,23 @@
 Для получения названия сгенерированного класса внутри JS необходимо
 импортировать модуль `src/js/styles.js`.
 
-## Изображения
+### Сетка
+Сетка основана на инлайновых блоках. Контейнер создается классом `.w`.
+Колонки - комбинацией классов `.c` и `.c{1-12}`, где `.c` служит для задания
+базовых стилей колонки и `.c{1-12}` для задания нужной ширины.
+
+### Изображения
 Все изображения, используемые в шаблонах и стилях, автоматически 
 переносятся в `dist/img`. 
 
 Изображения, имена которых начинаются с `sprite-`, объединяются в спрайт
 и переносятся в директорию с изображениями.
 
-Для упрощения работы есть миксин `sprite($url)`, в который надо передать
-относительный путь до изображения. Также доступы миксины 
-`image-width($url)` и `image-height($url)`, коотрые возвращают размеры 
-изображения.
-
-## TODO
+#### TODO
 - сжатие картинок
-- СВГ + спрайты
-- Допилить вотчеры:
+- Допилить вотчеры
 
-### Плагины
+#### Плагины
 - stylus(http://stylus-lang.com/)
 - postcss(https://github.com/postcss/postcss)
     - css-modules(https://github.com/css-modules/postcss-modules)
@@ -42,9 +41,9 @@
 - pug(https://github.com/pugjs/pug)
 - webpack(https://webpack.github.io)
 
-### JS штуки
+#### JS штуки
 - jQuery
 - Magnific Popup(http://dimsemenov.com/plugins/magnific-popup/)
-- Owl Carousel(http://owlcarousel2.github.io/OwlCarousel2/)
+- Slick(http://kenwheeler.github.io/slick/)
 - Lazyload(https://github.com/verlok/lazyload)
 - jquery.maskedinput(https://github.com/digitalBush/jquery.maskedinput)

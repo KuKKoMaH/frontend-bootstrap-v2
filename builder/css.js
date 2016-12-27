@@ -7,6 +7,7 @@ var discardDuplicates   = require('postcss-discard-duplicates');
 var cssnano             = require('cssnano');
 var cssnext             = require('postcss-cssnext');
 var sprites             = require('postcss-sprites');
+var updateRule          = require('postcss-sprites/lib/core').updateRule;
 var imageSizes          = require('postcss-image-sizes');
 var postcssCopy         = require('postcss-copy');
 var calc                = require("postcss-calc");
@@ -50,7 +51,7 @@ function load(filePath) {
         resolver(),
       ];
       stylus(css)
-        .import(path.resolve(pathGenerator.paths.basePath, 'styles', 'vars.styl'))
+        .import(path.resolve(pathGenerator.paths.basePath, 'styles', 'index.styl'))
         .render(function (err, css) {
           if (err) return reject(err);
           postcss(plugins).process(css, {from: filePath, to: pathGenerator.paths.basePath})
@@ -88,6 +89,19 @@ function combine(styles) {
               reject();
             }
           })
+        },
+        hooks: {
+          onUpdateRule: function(rule, token, image) {
+            // Use built-in logic for background-image & background-position
+            updateRule(rule, token, image);
+
+            ['width', 'height'].forEach(function(prop) {
+              rule.insertAfter(rule.last, postcss.decl({
+                prop: prop,
+                value: image.coords[prop] + 'px'
+              }));
+            });
+          }
         }
       }),
       postcssCopy({
