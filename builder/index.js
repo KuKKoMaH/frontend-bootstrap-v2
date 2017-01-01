@@ -1,13 +1,15 @@
 var fs = require('fs');
 var path = require('path');
+var livereload = require('livereload');
 
+var config = require('./config');
 var pathGenerator = require('./pathGenerator');
 var css = require('./css');
 var js = require('./js');
 var html = require('./html');
 
 var files;
-var commonStyles = path.resolve(pathGenerator.paths.basePath, 'layout', 'layout.styl');
+var commonStyles = path.resolve(config.basePath, 'layout', 'layout.styl');
 
 var styles = {
   modules: {},
@@ -44,21 +46,23 @@ function build() {
 
 function watch() {
   if(process.env.NODE_ENV !== 'production') {
-    console.log('Start watch');
-    fs.watch(pathGenerator.paths.basePath, {recursive: true}, function (eventType, filename) {
+    var server = livereload.createServer();
+    server.watch(config.buildPath);
+    fs.watch(config.basePath, {recursive: true}, function (eventType, filename) {
       console.log('change:', filename);
       build();
     });
+    console.log('Start watch');
   }
 }
 
 function generateBuildPath() {
-  var jsPath = pathGenerator.paths.jsPath;
-  var cssPath = pathGenerator.paths.cssPath;
-  var imgPath = pathGenerator.paths.imgPath;
-  var fontPath = pathGenerator.paths.fontPath;
-  if(!fs.existsSync(pathGenerator.paths.buildPath)){
-    fs.mkdirSync(pathGenerator.paths.buildPath);
+  var jsPath = config.jsPath;
+  var cssPath = config.cssPath;
+  var imgPath = config.imgPath;
+  var fontPath = config.fontPath;
+  if(!fs.existsSync(config.buildPath)){
+    fs.mkdirSync(config.buildPath);
   }
   if(!fs.existsSync(jsPath)){
     fs.mkdirSync(jsPath);
@@ -84,7 +88,7 @@ function loadAllCss() {
     styles.src.layout = allCss[0];
     return css.combine(styles);
   }, err => Promise.reject(err)).then(css => {
-    fs.writeFile(pathGenerator.paths.stylePath, css);
+    fs.writeFile(config.stylePath, css);
   }, err => Promise.reject(err));
 }
 
@@ -124,7 +128,7 @@ function loadAllJs() {
 function loadAllHtml() {
   iterate(files.pages, (page, dir) => {
     return html.load(page.template, styles).then((html) => {
-      fs.writeFile(path.resolve(pathGenerator.paths.buildPath, dir + '.html'), html);
+      fs.writeFile(path.resolve(config.buildPath, dir + '.html'), html);
     })
   });
 }

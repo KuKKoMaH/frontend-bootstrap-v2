@@ -2,8 +2,9 @@ var fs = require('fs');
 var path = require('path');
 var pug = require('pug');
 
+var config = require('./config');
 var pathGenerator = require('./pathGenerator');
-
+var pugFilters = require('./modules/pugFilters');
 /**
  *
  * @param {string} filePath - name of page
@@ -14,19 +15,9 @@ function load(filePath, styles) {
   var fileInfo = pathGenerator.parseFilename(filePath);
   return new Promise((resolve, reject) => {
     try {
-      var filters = {
-        'styles':  function (text, options) {
-          return '\n    <link rel="stylesheet" href="' + pathGenerator.paths.publicStylePath + '" />';
-        },
-        'scripts': function (text, options) {
-          return '\n    <script src="' + pathGenerator.paths.publicJsPath + 'vendors.js"></script>' +
-            '\n    <script src="' + pathGenerator.paths.publicJsPath + fileInfo.name + '.js"></script>\n';
-        }
-      };
-
       var config = {
         pretty:  true,
-        filters: filters,
+        filters: pugFilters.filters(fileInfo),
         plugins: [{
           postLex:  function (ast, config) {
             var fileInfo = pathGenerator.parseFilename(config.filename);
@@ -88,8 +79,8 @@ function walkAst(ast, cb) {
 }
 
 function saveFile(srcAbsPath) {
-  var destName = path.relative(pathGenerator.paths.basePath, srcAbsPath).replace(new RegExp(path.sep, 'g'), '-');
-  var destPath = path.resolve(pathGenerator.paths.imgPath, destName);
+  var destName = path.relative(config.basePath, srcAbsPath).replace(new RegExp(path.sep, 'g'), '-');
+  var destPath = path.resolve(config.imgPath, destName);
   if (fs.existsSync(srcAbsPath)) {
     fs.createReadStream(srcAbsPath).pipe(fs.createWriteStream(destPath));
     return destName;

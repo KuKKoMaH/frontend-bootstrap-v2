@@ -11,12 +11,12 @@ var updateRule          = require('postcss-sprites/lib/core').updateRule;
 var imageSizes          = require('postcss-image-sizes');
 var postcssCopy         = require('postcss-copy');
 var calc                = require("postcss-calc");
-var resolver            = require('./stylus/resolver');
 var mqpacker            = require("css-mqpacker");
 
 var stylus              = require('stylus');
 
-var pathGenerator = require('./pathGenerator');
+var resolver            = require('./modules/resolver');
+var config              = require('./config');
 
 var extensions = {
   images: ['.jpg', '.jpeg', '.gif', '.png'],
@@ -51,10 +51,10 @@ function load(filePath) {
         resolver(),
       ];
       stylus(css)
-        .import(path.resolve(pathGenerator.paths.basePath, 'styles', 'index.styl'))
+        .import(path.resolve(config.basePath, 'styles', 'index.styl'))
         .render(function (err, css) {
           if (err) return reject(err);
-          postcss(plugins).process(css, {from: filePath, to: pathGenerator.paths.basePath})
+          postcss(plugins).process(css, {from: filePath, to: config.basePath})
             .then(result => {
               resolve({module, css: result.css});
             }, err => {reject(err)});
@@ -79,8 +79,8 @@ function combine(styles) {
     var plugins = [
       discardDuplicates(),
       sprites({
-        stylesheetPath: pathGenerator.paths.cssPath,
-        spritePath: pathGenerator.paths.imgPath,
+        stylesheetPath: config.cssPath,
+        spritePath: config.imgPath,
         filterBy: function (info) {
           return new Promise((resolve, reject) => {
             if(info.url.indexOf(path.sep + 'sprite-') !== -1) {
@@ -105,8 +105,8 @@ function combine(styles) {
         }
       }),
       postcssCopy({
-        src: pathGenerator.paths.basePath,
-        dest: pathGenerator.paths.imgPath,
+        src: config.basePath,
+        dest: config.imgPath,
         // template: '[hash].[ext][query]',
         template: function (fileMeta) {
           var src = fileMeta.filename;
@@ -116,16 +116,16 @@ function combine(styles) {
           var srcPath = path.resolve(dir, src);
           var destName, destPath;
           if(extensions.images.indexOf(ext) !== -1){
-            destName = path.relative(pathGenerator.paths.basePath, srcPath).replace(new RegExp(path.sep,'g'), '-');
-            destPath = path.resolve(pathGenerator.paths.imgPath, destName);
+            destName = path.relative(config.basePath, srcPath).replace(new RegExp(path.sep,'g'), '-');
+            destPath = path.resolve(config.imgPath, destName);
           }else if(extensions.fonts.indexOf(ext) !== -1){
-            destName = path.relative(pathGenerator.paths.basePath, src);
-            destPath = path.resolve(pathGenerator.paths.fontPath, destName);
+            destName = path.relative(config.basePath, src);
+            destPath = path.resolve(config.fontPath, destName);
           }
           return destPath;
         },
         relativePath(dirname, fileMeta, result, options) {
-          return pathGenerator.paths.cssPath;
+          return config.cssPath;
         }
       }),
       calc()
@@ -137,7 +137,7 @@ function combine(styles) {
       plugins.push(mqpacker({ sort: true }));
     }
 
-    postcss(plugins).process(css, {from: path.resolve(pathGenerator.paths.basePath, 'style.css')})
+    postcss(plugins).process(css, {from: path.resolve(config.basePath, 'style.css')})
       .then(result => {
         resolve(result.css);
       }, err => {throw err;});

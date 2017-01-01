@@ -8,6 +8,9 @@ wrapper()
   cf()
   background-grid()
 
+  > *
+    font-size: $font-size
+
   @media (min-width: $breakpoint-sm) and (max-width $breakpoint-md - 1)
     width: $container-sm
   @media (min-width: $breakpoint-md) and (max-width $breakpoint-lg - 1)
@@ -29,6 +32,9 @@ cf()
     content: ''
     display: table
     clear: both
+
+em(lines = 1)
+  ($line-height * lines)em
 
 background-grid()
   @media (min-width: $breakpoint-sm) and (max-width: $breakpoint-md - 1)
@@ -57,3 +63,8 @@ transparentBG()
 
 sprite($url)
   background: url($url)
+
+vertical-gradient()
+  background-image: linear-gradient(to top, rgba(0, 0, 0, 0.1) 5%, rgba(0, 0, 0, 0) 5%)
+  background-size: 100% ($line-height)em
+  background-position: left top

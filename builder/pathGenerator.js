@@ -2,30 +2,13 @@ var fs = require('fs');
 var path = require('path');
 var pug = require('pug');
 
+var config = require('./config');
+var pugFilters = require('./modules/pugFilters');
+
 var typeTemplateMap = {
   'template': 'pug',
   'style':    'styl',
   'script':   'js',
-};
-
-var basePath = path.resolve(__dirname, '..', 'src');
-var buildPath = path.resolve(__dirname, '..', 'dist');
-var cssPath = path.resolve(buildPath, 'css');
-var jsPath = path.resolve(buildPath, 'js');
-var imgPath = path.resolve(buildPath, 'img');
-var fontPath = path.resolve(buildPath, 'fonts');
-var paths = {
-  basePath,
-  buildPath,
-  cssPath,
-  jsPath,
-  imgPath,
-  fontPath,
-  modulesPath:     path.resolve(basePath, 'modules'),
-  pagesPath:       path.resolve(basePath, 'pages'),
-  stylePath:       path.resolve(cssPath, 'style.css'),
-  publicStylePath: 'css/style.css',
-  publicJsPath:    'js/'
 };
 
 
@@ -38,7 +21,7 @@ var paths = {
 function getModuleFiles(dir, moduleType){
   var files = {};
   for(var fileType in typeTemplateMap){
-    var filePath = path.resolve(paths.basePath, moduleType, dir, dir + '.' + typeTemplateMap[fileType]);
+    var filePath = path.resolve(config.basePath, moduleType, dir, dir + '.' + typeTemplateMap[fileType]);
     if(fs.existsSync(filePath)){
       files[fileType] = filePath;
     }
@@ -53,14 +36,7 @@ function getModuleFiles(dir, moduleType){
  */
 function getDependencies(template) {
   var file = pug.compileFile(template, {
-    filters: {
-      'styles': function (text, options) {
-        return text;
-      },
-      'scripts': function (text, options) {
-        return text;
-      }
-    },
+    filters: pugFilters.filtersMock(),
   });
   return file.dependencies
     .map(dependency => {
@@ -79,7 +55,7 @@ function getFiles() {
       modules: {},
       pages:   {},
     };
-    var dirs = fs.readdirSync(paths.pagesPath);
+    var dirs = fs.readdirSync(config.pagesPath);
     dirs.map((dir) => {
       var pageFiles = getModuleFiles(dir, 'pages');
       files.pages[dir] = pageFiles;
@@ -109,7 +85,6 @@ function parseFilename(fileName) {
 
 
 module.exports = {
-  paths,
   getModuleFiles,
   getFiles,
   parseFilename

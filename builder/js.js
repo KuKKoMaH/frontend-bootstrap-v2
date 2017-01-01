@@ -3,7 +3,7 @@ var path = require('path');
 var webpack = require('webpack');
 var modulesify = require('css-modulesify');
 
-var pathGenerator = require('./pathGenerator');
+var config = require('./config');
 
 function load(entries, globals) {
   var plugins = [
@@ -27,7 +27,7 @@ function load(entries, globals) {
     webpack({
       entry:  entries,
       output: {
-        path:     path.resolve(pathGenerator.paths.buildPath, 'js'),
+        path:     path.resolve(config.buildPath, 'js'),
         filename: '[name].js',
       },
       module: {
