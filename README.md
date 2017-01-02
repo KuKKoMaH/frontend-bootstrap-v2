@@ -40,7 +40,9 @@
     - postcss-copy(https://github.com/geut/postcss-copy)
     - css-mqpacker(https://github.com/hail2u/node-css-mqpacker)
 - pug(https://github.com/pugjs/pug)
+- sharp(https://github.com/lovell/sharp)
 - webpack(https://webpack.github.io)
+- livereload(https://github.com/napcs/node-livereload)
 
 #### JS штуки
 - jQuery
