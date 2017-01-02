@@ -39,8 +39,11 @@ function build() {
           return Promise.reject(err);
         }
       ).then(function () {
-        console.log('Compless images');
-        return imageCompressor();
+        if(process.env.NODE_ENV === 'production') {
+          console.log('Compress images');
+          return imageCompressor();
+        }
+        return null;
       }).then(function () {
         console.log('Build successful');
         resolve();
