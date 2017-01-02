@@ -7,6 +7,7 @@ var pathGenerator = require('./pathGenerator');
 var css = require('./css');
 var js = require('./js');
 var html = require('./html');
+var imageCompressor = require('./imageCompressor');
 
 var files;
 var commonStyles = path.resolve(config.basePath, 'layout', 'layout.styl');
@@ -38,6 +39,9 @@ function build() {
           return Promise.reject(err);
         }
       ).then(function () {
+        console.log('Compless images');
+        return imageCompressor();
+      }).then(function () {
         console.log('Build successful');
         resolve();
       }, err => { console.log(err); return reject(err); });
