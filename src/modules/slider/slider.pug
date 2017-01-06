@@ -1,0 +1,12 @@
+- var items = [ 'img/img-1.png', 'img/img-2.png' ];
+
+each item in items
+  img(src='modules/slider/' + item)
+
+each item in items
+  div(style='background-image: url(modules/slider/' + item + ')')
+
+div(style='background-image: url(modules/slider/img/img-1.png), url(modules/slider/img/img-2.png)')
+
+.slider-s1
+.slider-s2

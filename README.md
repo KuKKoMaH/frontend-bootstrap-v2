@@ -17,6 +17,8 @@
 базовых стилей колонки и `.c{1-12}` для задания нужной ширины.
 
 ### Изображения
+Пути до изображений должны быть заданы относительно `src`.
+
 Все изображения, используемые в шаблонах и стилях, автоматически 
 переносятся в `dist/img`. 
 
@@ -40,7 +42,10 @@
     - postcss-copy(https://github.com/geut/postcss-copy)
     - css-mqpacker(https://github.com/hail2u/node-css-mqpacker)
 - pug(https://github.com/pugjs/pug)
-- sharp(https://github.com/lovell/sharp)
+- posthtml(https://github.com/posthtml/posthtml)
+- imagemin(https://github.com/imagemin/imagemin)
+    - imagemin-mozjpeg(https://github.com/imagemin/imagemin-mozjpeg)
+    - imagemin-pngquant(https://github.com/imagemin/imagemin-pngquant)
 - webpack(https://webpack.github.io)
 - livereload(https://github.com/napcs/node-livereload)
 

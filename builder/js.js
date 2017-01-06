@@ -5,7 +5,12 @@ var modulesify = require('css-modulesify');
 
 var config = require('./config');
 
-function load(entries, globals) {
+/**
+ * @param {Object} entries - объект страниц со списками зависимых модулей
+ * @param globals - глобальные переменные для js-бандлов
+ * @return {Promise<Object>}
+ */
+module.exports = function(entries, globals) {
   var plugins = [
     new webpack.DefinePlugin({
       globals: JSON.stringify(globals),
@@ -43,8 +48,4 @@ function load(entries, globals) {
       resolve(jsonStats);
     });
   })
-}
-
-module.exports = {
-  load
 };

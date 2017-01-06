@@ -12,10 +12,9 @@ var imageSizes          = require('postcss-image-sizes');
 var postcssCopy         = require('postcss-copy');
 var calc                = require("postcss-calc");
 var mqpacker            = require("css-mqpacker");
-
 var stylus              = require('stylus');
 
-var resolver            = require('./modules/resolver');
+var utils               = require('./utils');
 var config              = require('./config');
 
 var extensions = {
@@ -24,18 +23,21 @@ var extensions = {
 };
 
 /**
- * Возвращает объект с полями { module, css }, где "module" - карта "уникальный класс: оригинальынй класс" и
- * "css" - преобразованный код
+ * @typedef {Object} moduleCssInfo - объект с результатом преобразования css-модуля
+ * @property {String} css - результирующий css
+ * @property {String} name - имя модуля
+ * @property {Object<String>} module - объект вида "уникальный класс: оригинальынй класс"
+ */
+
+/**
  * @param {String} filePath - путь до файла
- * @return {Promise} { module, css }
+ * @return {Promise<moduleCssInfo>}
  * */
-function load(filePath) {
+function convert(filePath) {
   var module;
   return new Promise((resolve, reject) => {
-    fs.readFile(filePath, 'utf-8', (err, css) => {
-      if (err) return reject(err);
-
-      var dir = path.dirname(filePath);
+    utils.readFile(filePath).then(css => {
+      var fileInfo = path.parse(filePath);
 
       var plugins = [
         postcssModules({
@@ -46,9 +48,7 @@ function load(filePath) {
             module = json;
           }
         }),
-        atImport(),
-        imageSizes({assetsPath: dir}),
-        resolver(),
+        atImport(), // stylus не поддерживает импорт css файлов
       ];
       stylus(css)
         .import(path.resolve(config.basePath, 'styles', 'index.styl'))
@@ -56,7 +56,7 @@ function load(filePath) {
           if (err) return reject(err);
           postcss(plugins).process(css, {from: filePath, to: config.basePath})
             .then(result => {
-              resolve({module, css: result.css});
+              resolve({module, css: result.css, name: fileInfo.name});
             }, err => {reject(err)});
         });
     });
@@ -65,86 +65,81 @@ function load(filePath) {
 
 /**
  * Собирает весь css в строку
+ * @param {Array<String>} styles - массив css файлов
  * @return {Promise} result css
  */
 function combine(styles) {
-  var css = '';
-  ['pages', 'modules', 'src'].map(type => {
-    for(var key in styles[type]){
-      css += styles[type][key].css;
-    }
-  });
-  return new Promise((resolve, reject) => {
-
-    var plugins = [
-      discardDuplicates(),
-      sprites({
-        stylesheetPath: config.cssPath,
-        spritePath: config.imgPath,
-        filterBy: function (info) {
-          return new Promise((resolve, reject) => {
-            if(info.url.indexOf(path.sep + 'sprite-') !== -1) {
-              resolve(info.path);
-            }else {
-              reject();
-            }
-          })
-        },
-        hooks: {
-          onUpdateRule: function(rule, token, image) {
-            // Use built-in logic for background-image & background-position
-            updateRule(rule, token, image);
-
-            ['width', 'height'].forEach(function(prop) {
-              rule.insertAfter(rule.last, postcss.decl({
-                prop: prop,
-                value: image.coords[prop] + 'px'
-              }));
-            });
+  var css = styles.join('\n');
+  var plugins = [
+    discardDuplicates(),
+    sprites({
+      stylesheetPath: config.cssPath,
+      spritePath: config.imgPath,
+      filterBy: function (info) {
+        return new Promise((resolve, reject) => {
+          if(info.url.indexOf(path.sep + 'sprite-') !== -1) {
+            resolve(info.path);
+          }else {
+            reject();
           }
+        })
+      },
+      hooks: {
+        onUpdateRule: function(rule, token, image) {
+          // Use built-in logic for background-image & background-position
+          updateRule(rule, token, image);
+
+          ['width', 'height'].forEach(function(prop) {
+            rule.insertAfter(rule.last, postcss.decl({
+              prop: prop,
+              value: image.coords[prop] + 'px'
+            }));
+          });
         }
-      }),
-      postcssCopy({
-        src: config.basePath,
-        dest: config.imgPath,
-        // template: '[hash].[ext][query]',
-        template: function (fileMeta) {
-          var src = fileMeta.filename;
-          var dir = fileMeta.src;
-          var ext = path.extname(fileMeta.filename);
+      }
+    }),
+    postcssCopy({
+      src: config.basePath,
+      dest: config.imgPath,
+      // template: '[hash].[ext][query]',
+      template: function (fileMeta) {
+        var src = fileMeta.filename;
+        var dir = fileMeta.src;
+        var ext = path.extname(fileMeta.filename);
 
-          var srcPath = path.resolve(dir, src);
-          var destName, destPath;
-          if(extensions.images.indexOf(ext) !== -1){
-            destName = path.relative(config.basePath, srcPath).replace(new RegExp(path.sep,'g'), '-');
-            destPath = path.resolve(config.imgPath, destName);
-          }else if(extensions.fonts.indexOf(ext) !== -1){
-            destName = path.relative(config.basePath, src);
-            destPath = path.resolve(config.fontPath, destName);
-          }
-          return destPath;
-        },
-        relativePath(dirname, fileMeta, result, options) {
-          return config.cssPath;
+        var srcPath = path.resolve(dir, src);
+        var destName, destPath;
+        if(extensions.images.indexOf(ext) !== -1){
+          destName = path.relative(config.basePath, srcPath).replace(new RegExp(path.sep,'g'), '-');
+          destPath = path.resolve(config.imgPath, destName);
+        }else if(extensions.fonts.indexOf(ext) !== -1){
+          destName = path.relative(config.basePath, src);
+          destPath = path.resolve(config.fontPath, destName);
         }
-      }),
-      calc()
-    ];
+        return destPath;
+      },
+      relativePath(dirname, fileMeta, result, options) {
+        return config.cssPath;
+      }
+    }),
+    calc()
+  ];
 
-    if(process.env.NODE_ENV === 'production') {
-      plugins.push(cssnano());
-      plugins.push(cssnext({browsers: ['last 10 versions', 'IE > 8']}));
-      plugins.push(mqpacker({ sort: true }));
-    }
+  if(process.env.NODE_ENV === 'production') {
+    plugins.push(cssnano());
+    plugins.push(cssnext({browsers: ['last 10 versions', 'IE > 8']}));
+    plugins.push(mqpacker({ sort: true }));
+  }
 
-    postcss(plugins).process(css, {from: path.resolve(config.basePath, 'style.css')})
-      .then(result => {
-        resolve(result.css);
-      }, err => {throw err;});
-  });
+  return postcss(plugins)
+    .process(css, {from: path.resolve(config.basePath, 'style.css')})
+    .then(
+      result => utils.writeFile(path.resolve(config.cssPath, 'style.css'), result.css),
+      err => {throw err;}
+    );
 }
 
 module.exports = {
-  load,
+  convert,
   combine
 };

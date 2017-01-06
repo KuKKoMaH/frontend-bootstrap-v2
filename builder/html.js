@@ -1,93 +1,85 @@
-var fs = require('fs');
-var path = require('path');
-var pug = require('pug');
+const fs = require('fs');
+const path = require('path');
+const _ = require('lodash');
+const pug = require('pug');
+const posthtml = require('posthtml');
+const utils = require('./utils');
+const config = require('./config');
 
-var config = require('./config');
-var pathGenerator = require('./pathGenerator');
-var pugFilters = require('./modules/pugFilters');
+/**
+ * @typedef {Object} pageInfo - промежуточный объект сборки html
+ * @property {Array<String>} modules - список зависимых модулей
+ * @property {String} name - имя страницы
+ * @property {String} html - html после конвертации pug
+ */
+
+/**
+ * Собирает html станицу из указанной директории
+ * @param {string} pagePath - директория страницы.
+ * @return {pageInfo}
+ */
+function prebuild(pagePath) {
+  const pageName = path.basename(pagePath, '.pug');
+
+  try {
+    const file = pug.compileFile(pagePath, {
+      pretty:  true,
+      filters: {
+        styles:    () => '\n    <link rel="stylesheet" href="' + config.publicStylePath + '" />',
+        scripts:   () => '\n    <script src="' + config.publicJsPath + 'vendors.js"></script>' +
+        '\n    <script src="' + config.publicJsPath + pageName + '.js"></script>\n',
+        hotreload: () => '\n    <script src="http://localhost:35729/livereload.js?snipver=1" async></script>\n',
+      }
+    });
+    const modules = file.dependencies.map(dependency => path.basename(dependency, '.pug'));
+    return {
+      modules,
+      name: pageName,
+      html: file()
+    };
+  } catch(e) {
+    throw e;
+  }
+}
+
 /**
  *
- * @param {string} filePath - name of page
- * @param {string} styles - object of all styles
- * @return {Promise} string
+ * @param {String} name - имя страницы
+ * @param {String} html
+ * @param {Object} cssModules
+ * @return {Promise}
  */
-function load(filePath, styles) {
-  var fileInfo = pathGenerator.parseFilename(filePath);
-  return new Promise((resolve, reject) => {
-    try {
-      var config = {
-        pretty:  true,
-        filters: pugFilters.filters(fileInfo),
-        plugins: [{
-          postLex:  function (ast, config) {
-            var fileInfo = pathGenerator.parseFilename(config.filename);
-            var css = styles[fileInfo.type] && styles[fileInfo.type][fileInfo.name];
-            if (!css) return ast;
-            return ast.map(asn => {
-              if (asn.type === 'class' && css && css.module[asn.val]) {
-                asn.val = css.module[asn.val];
-              }
-              return asn;
-            })
-          },
-          postLink: function (ast) {
-            walkAst(ast, (ast) => {
-              ast.attrs.forEach((attr) => {
-                var value = attr.val;
-                var dir = path.dirname(ast.filename);
-                if (!value) return;
+function complete(name, html, cssModules) {
+  posthtml([
+    function applyCssModules(tree) {
+      tree.match({attrs: {'class': /\w+/}}, node => {
+        const classNames = node.attrs.class.split(' ');
+        node.attrs.class = classNames.map(className => {
+          const moduleClassName = _.get(cssModules, className.replace('-', '.'));
+          return typeof moduleClassName === 'string' ? moduleClassName : className;
+        }).join(' ');
+        return node;
+      });
+    },
+    function copyAssets(tree) {
+      const promises = [];
 
-                if (attr.name === 'style') {
-                  if(value.indexOf('url(') !== -1){
-                    attr.val = value.replace(/url\((.*?)\)/g, function (str, url, offset, s) {
-                      if( url.indexOf('data:') === 0 || url.indexOf('#') === 0 || url.indexOf('http') === 0) return url;
-                      var srcPath = path.resolve(dir, url.replace(/["']/g, "").trim());
-                      var destName = saveFile(srcPath);
-                      return 'url(' + (destName ? 'img/' + destName : url) + ')';
-                    });
-                  }
-                  return;
-                }
-
-                if (value.indexOf('http') === 1) return; // пропустить все внешние изображения (атрибут заключен в кавычки)
-                if (value.indexOf('.') === -1) return; // если в атрибуте файл - то в пути должна быть точка
-                var src = value.slice(1, -1); // обрезаем кавычки
-                var srcPath = path.resolve(dir, src);
-                var destName = saveFile(srcPath);
-                if (destName) {
-                  attr.val = '\'img/' + destName + '\'';
-                }
-              });
-            });
-            return ast;
-          }
-        }]
-      };
-
-      var file = pug.renderFile(filePath, config);
-      resolve(file);
-    }catch(err) { reject(err) }
-  })
-}
-
-function walkAst(ast, cb) {
-  if(ast.type === 'Tag')  cb(ast);
-  if(ast.nodes){
-    ast.nodes.forEach(node => walkAst(node, cb));
-  }
-  if(ast.block) walkAst(ast.block, cb);
-}
-
-function saveFile(srcAbsPath) {
-  var destName = path.relative(config.basePath, srcAbsPath).replace(new RegExp(path.sep, 'g'), '-');
-  var destPath = path.resolve(config.imgPath, destName);
-  if (fs.existsSync(srcAbsPath)) {
-    fs.createReadStream(srcAbsPath).pipe(fs.createWriteStream(destPath));
-    return destName;
-  }
-  return null;
+      tree.match({tag: /\w+/}, node => {
+        _.map(node.attrs, (value, name) => {
+          const savePromise = utils.saveAssets(name, value);
+          promises.push(savePromise);
+          savePromise.then(newValue => node.attrs[name] = newValue);
+        });
+        return node;
+      });
+      return Promise.all(promises).then(() => tree);
+    },
+  ])
+    .process(html)
+    .then(result => utils.writeFile(path.resolve(config.buildPath, name + '.html'), result.html));
 }
 
 module.exports = {
-  load
+  prebuild,
+  complete
 };
