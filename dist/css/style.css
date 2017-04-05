@@ -285,3 +285,20 @@ img {
   width: 224px;
   height: 152px;
 }
+
+.src-modules-form-block {
+  display: block;
+}
+.src-modules-form-message {
+  display: none;
+  text-align: left;
+  color: #f00;
+  line-height: 1;
+  padding-left: 8px;
+}
+.src-modules-form-error .src-modules-form-input {
+  border-color: $darkred;
+}
+.src-modules-form-error .src-modules-form-message {
+  display: inline;
+}
