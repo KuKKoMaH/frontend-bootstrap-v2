@@ -37,6 +37,14 @@ module.exports = function(entries, globals) {
       },
       module: {
         loaders: [
+          {
+            test: /\.js$/,
+            exclude: /(node_modules|bower_components)/,
+            loader: 'babel-loader',
+            query: {
+              presets: ['es2015', 'stage-2'],
+            }
+          },
           { test: require.resolve("jquery"), loader: "expose-loader?$!expose-loader?jQuery" },
         ]
       },
