@@ -21,6 +21,8 @@ const config = require('./config');
 function prebuild(pagePath) {
   const pageName = path.basename(pagePath, '.pug');
 
+  const isProduction = process.env.NODE_ENV === 'production';
+
   try {
     const file = pug.compileFile(pagePath, {
       pretty:  true,
@@ -28,7 +30,7 @@ function prebuild(pagePath) {
         styles:    () => '\n    <link rel="stylesheet" href="' + config.publicStylePath + '" />',
         scripts:   () => '\n    <script src="' + config.publicJsPath + 'vendors.js"></script>' +
         '\n    <script src="' + config.publicJsPath + pageName + '.js"></script>\n',
-        hotreload: () => '\n    <script src="http://localhost:35729/livereload.js?snipver=1" async></script>\n',
+        hotreload: () => isProduction ? '' : '\n    <script src="http://localhost:35729/livereload.js?snipver=1" async></script>\n',
       }
     });
     const modules = file.dependencies.map(dependency => path.basename(dependency, '.pug'));
