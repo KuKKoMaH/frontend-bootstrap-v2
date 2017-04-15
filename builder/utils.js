@@ -65,9 +65,9 @@ const saveAsset = (src) => {
 
 /**
  * Ищет в value ссылки на файлы и сохраняет их
- * @param {String} name
- * @param {String} value
- * @return {Promise<String>} - новое значение value
+ * @param {String} name - имя параметра
+ * @param {String} value - значение параметра
+ * @return {Promise<String>} - новое значение параметра
  */
 const saveAssets = (name, value) => {
   if (name === 'style' && value.indexOf('url(') !== -1) {
@@ -88,10 +88,26 @@ const saveAssets = (name, value) => {
   }
 };
 
+/**
+ *
+ * @param {object} styles
+ * @returns {object.<string>}
+ */
+const convertStyles = (styles) => {
+  return Object.keys(styles).reduce((result, moduleName) => {
+    const module = styles[moduleName];
+    Object.keys(module).forEach((className) => {
+      result[`${moduleName}_${className}`] = JSON.stringify(module[className]);
+    });
+    return result;
+  }, {});
+};
+
 module.exports = {
   readFile,
   readDir,
   writeFile,
   saveAsset,
   saveAssets,
+  convertStyles,
 };

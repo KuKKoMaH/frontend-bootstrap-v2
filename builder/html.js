@@ -18,7 +18,7 @@ const config = require('../config');
  * @param {string} pagePath - директория страницы.
  * @return {pageInfo}
  */
-function prebuild(pagePath) {
+function prebuild( pagePath ) {
   const pageName = path.basename(pagePath, '.pug');
 
   const isProduction = process.env.NODE_ENV === 'production';
@@ -27,7 +27,7 @@ function prebuild(pagePath) {
     const file = pug.compileFile(pagePath, {
       pretty:  true,
       filters: {
-        styles:    () => '\n    <link rel="stylesheet" href="' + config.publicStylePath + '" />',
+        styles:    () => '\n    <link rel="stylesheet" href="' + config.publicStylePath + 'style.css" />',
         scripts:   () => '\n    <script src="' + config.publicJsPath + 'vendors.js"></script>' +
         '\n    <script src="' + config.publicJsPath + pageName + '.js"></script>\n',
         hotreload: () => isProduction ? '' : '\n    <script src="http://localhost:35729/livereload.js?snipver=1" async></script>\n',
@@ -39,7 +39,7 @@ function prebuild(pagePath) {
       name: pageName,
       html: file()
     };
-  } catch(e) {
+  } catch (e) {
     throw e;
   }
 }
@@ -51,10 +51,10 @@ function prebuild(pagePath) {
  * @param {Object} cssModules
  * @return {Promise}
  */
-function complete(name, html, cssModules) {
+function complete( name, html, cssModules ) {
   posthtml([
-    function applyCssModules(tree) {
-      tree.match({attrs: {'class': /\w+/}}, node => {
+    function applyCssModules( tree ) {
+      tree.match({ attrs: { 'class': /\w+/ } }, node => {
         const classNames = node.attrs.class.split(' ');
         node.attrs.class = classNames.map(className => {
           const moduleClassName = _.get(cssModules, className.replace('-', '.'));
@@ -63,11 +63,11 @@ function complete(name, html, cssModules) {
         return node;
       });
     },
-    function copyAssets(tree) {
+    function copyAssets( tree ) {
       const promises = [];
 
-      tree.match({tag: /\w+/}, node => {
-        _.map(node.attrs, (value, name) => {
+      tree.match({ tag: /\w+/ }, node => {
+        _.map(node.attrs, ( value, name ) => {
           const savePromise = utils.saveAssets(name, value);
           promises.push(savePromise);
           savePromise.then(newValue => node.attrs[name] = newValue);

@@ -2,6 +2,7 @@ const fs = require('fs');
 const webpack = require('webpack');
 
 const config = require('../config');
+const utils = require('./utils');
 
 /**
  * @param {Object} entries - объект страниц со списками зависимых модулей
@@ -28,9 +29,7 @@ module.exports = function ( entries, globals ) {
       ]
     },
     plugins: [
-      new webpack.DefinePlugin({
-        globals: JSON.stringify(globals),
-      }),
+      new webpack.DefinePlugin(utils.convertStyles(globals.styles)),
       new webpack.optimize.CommonsChunkPlugin({
         name:      'vendors',
         minChunks: 2
