@@ -23,7 +23,7 @@ const livereload = require('livereload');
 const _ = require('lodash');
 
 const utils = require('./utils');
-const config = require('./config');
+const config = require('../config');
 const css = require('./css');
 const js = require('./js');
 const html = require('./html');

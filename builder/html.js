@@ -4,7 +4,7 @@ const _ = require('lodash');
 const pug = require('pug');
 const posthtml = require('posthtml');
 const utils = require('./utils');
-const config = require('./config');
+const config = require('../config');
 
 /**
  * @typedef {Object} pageInfo - промежуточный объект сборки html

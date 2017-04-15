@@ -15,7 +15,7 @@ var mqpacker            = require("css-mqpacker");
 var stylus              = require('stylus');
 
 var utils               = require('./utils');
-var config              = require('./config');
+var config              = require('../config');
 
 var extensions = {
   images: ['.jpg', '.jpeg', '.gif', '.png'],
