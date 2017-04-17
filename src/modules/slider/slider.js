@@ -1,7 +1,8 @@
-import 'slick-carousel';
-// import styles from '../../js/styles';
+// import 'slick-carousel';
 
-$('.' + slider_block).slick({
-  lazyLoad: 'progressive',
-  dots: true,
-});
+$('.' + slider_block).show();
+
+// $('.' + slider_block).slick({
+//   lazyLoad: 'progressive',
+//   dots: true,
+// });

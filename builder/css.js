@@ -12,13 +12,14 @@ var imageSizes = require('postcss-image-sizes');
 var postcssCopy = require('postcss-copy');
 var calc = require("postcss-calc");
 var mqpacker = require("css-mqpacker");
+var url = require("postcss-url");
 var stylus = require('stylus');
 
 var utils = require('./utils');
 var config = require('../config');
 
 var extensions = {
-  images: ['.jpg', '.jpeg', '.gif', '.png'],
+  images: ['.jpg', '.jpeg', '.gif', '.png', '.svg'],
   fonts:  ['.eot', '.woff', '.woff2']
 };
 
@@ -47,13 +48,16 @@ function convert( filePath ) {
           getJSON:            ( cssFileName, json ) => (module = json),
         }),
         atImport(), // stylus не поддерживает импорт css файлов
+        url({ url: "rebase" })
       ];
       stylus(css)
         .import(path.resolve(config.basePath, 'styles', 'index.styl'))
         .render(function ( err, css ) {
           if (err) return reject(err);
-          postcss(plugins).process(css, { from: filePath, to: config.basePath })
+          // console.log(css);
+          postcss(plugins).process(css, { from: filePath, to: path.resolve(config.basePath, 'style.css') })
             .then(result => {
+              // console.log(result.css);
               resolve({ module, css: result.css, name: fileInfo.name });
             }, err => {
               reject(err)
@@ -99,10 +103,10 @@ function combine( styles ) {
       }
     }),
     postcssCopy({
-      src:      config.basePath,
-      dest:     config.imgPath,
+      src:  config.basePath,
+      dest: config.imgPath,
       // template: '[hash].[ext][query]',
-      template: function ( fileMeta ) {
+      template( fileMeta ) {
         var src = fileMeta.filename;
         var dir = fileMeta.src;
         var ext = path.extname(fileMeta.filename);

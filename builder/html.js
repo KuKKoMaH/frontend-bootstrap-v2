@@ -25,13 +25,14 @@ function prebuild( pagePath ) {
 
   try {
     const file = pug.compileFile(pagePath, {
+      basedir: config.basePath,
       pretty:  true,
       filters: {
         styles:    () => '\n    <link rel="stylesheet" href="' + config.publicStylePath + 'style.css" />',
         scripts:   () => '\n    <script src="' + config.publicJsPath + 'vendors.js"></script>' +
-        '\n    <script src="' + config.publicJsPath + pageName + '.js"></script>\n',
-        hotreload: () => isProduction ? '' : '\n    <script src="http://localhost:35729/livereload.js?snipver=1" async></script>\n',
-      }
+        '\n    <script src="' + config.publicJsPath + pageName + '.js"></script>',
+        hotreload: () => isProduction ? '' : '\n    <script src="http://localhost:35729/livereload.js?snipver=1" async></script>',
+      },
     });
     const modules = file.dependencies.map(dependency => path.basename(dependency, '.pug'));
     return {
@@ -47,12 +48,12 @@ function prebuild( pagePath ) {
 /**
  *
  * @param {String} name - имя страницы
- * @param {String} html
+ * @param {String} html - содержимое страницы
  * @param {Object} cssModules
  * @return {Promise}
  */
 function complete( name, html, cssModules ) {
-  posthtml([
+  const plugins = [
     function applyCssModules( tree ) {
       tree.match({ attrs: { 'class': /\w+/ } }, node => {
         const classNames = node.attrs.class.split(' ');
@@ -76,7 +77,9 @@ function complete( name, html, cssModules ) {
       });
       return Promise.all(promises).then(() => tree);
     },
-  ])
+  ];
+
+  posthtml(plugins)
     .process(html)
     .then(result => utils.writeFile(path.resolve(config.buildPath, name + '.html'), result.html));
 }
