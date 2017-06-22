@@ -48,7 +48,7 @@ function convert( filePath ) {
           getJSON:            ( cssFileName, json ) => (module = json),
         }),
         atImport(), // stylus не поддерживает импорт css файлов
-        url({ url: "rebase" })
+        // url({ url: "rebase" })
       ];
       stylus(css)
         .import(path.resolve(config.basePath, 'styles', 'index.styl'))

@@ -31,7 +31,29 @@ img
     display: inline
 
   .w
+    margin-left: auto
+    margin-right: auto
     wrapper()
+    @media (min-width: $breakpoint-sm) and (max-width $breakpoint-md - 1)
+      width: $container-sm
+    @media (min-width: $breakpoint-md) and (max-width $breakpoint-lg - 1)
+      width: $container-md
+    @media (min-width: $breakpoint-lg)
+      width: $container-lg
+
+  .wf
+    wrapper()
+    margin-left: -($gutter-half)
+    margin-right: -($gutter-half)
+
+    &:after
+      content: ''
+      display: table
+      clear: both
+
+  .wc
+    .c
+      vertical-align: middle
 
   .c
     col()
