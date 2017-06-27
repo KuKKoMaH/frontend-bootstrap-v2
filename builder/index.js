@@ -177,12 +177,14 @@ function watch() {
 
   let inProgress = false;
   const server = livereload.createServer();
-  server.watch(config.buildPath);
-  fs.watch(config.basePath, {recursive: true}, function (eventType, filename) {
-    console.log('change:', filename);
+  // server.watch(config.buildPath);
+  fs.watch(config.basePath, { recursive: true }, function ( eventType, filename ) {
     if (inProgress) return;
     inProgress = true;
-    const buildEnd = () => inProgress = false;
+    const buildEnd = () => {
+      inProgress = false;
+      server.refresh('/');
+    };
     build().then(buildEnd, buildEnd);
   });
   console.log('Start watch');
